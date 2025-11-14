@@ -1,0 +1,6 @@
+@ParcelwalaAPP_HostAddress = http://localhost:5238
+
+GET {{ParcelwalaAPP_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
