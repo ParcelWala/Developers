@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Parcelwala.DataAccess.Data;
+using Parcelwala.DataAccess.Services;
 using ParcelwalaAPP;
 using ParcelwalaAPP.DataAccess.Services;
 using System.Net.NetworkInformation;
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddScoped<IJwtService, JwtService>();  
 
 //Add Controllers
 builder.Services.AddControllers();

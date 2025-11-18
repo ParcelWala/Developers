@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Parcelwala.DataAccess.Data;
+using Parcelwala.DataAccess.Services;
+using ParcelwalaAPP.DataAccess.DTOs;
+using ParcelwalaAPP.Models;
+
 
 //using Parcelwala.DataAccess.Data;
 //using Parcelwala.Models;
@@ -19,6 +23,8 @@ namespace ParcelwalaAPP.DataAccess.Services
     {
         Task<(bool Success, string Message, OTPVerifications? OTPVerifications)> SendOtpAsync(
             string phoneNumber, string countrycode, string purpose);
+        //Task<SendOtpResponse> SendOtpAsync(SendOtpRequest request);
+        Task<VerifyOtpResponse> VerifyOtpAsync(VerifyOtpRequest request);
         string GenerateOtp();
     }
 
@@ -29,19 +35,22 @@ namespace ParcelwalaAPP.DataAccess.Services
         private readonly ISmsService _smsService;
         private readonly ILogger<OtpService> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IJwtService _jwtService;
 
         public OtpService(
             AppDbContext context,
             IEmailService emailService,
             ISmsService smsService,
             ILogger<OtpService> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IJwtService jwtService)
         {
             _context = context;
             _emailService = emailService;
             _smsService = smsService;
             _logger = logger;
             _configuration = configuration;
+            _jwtService = jwtService;
         }
 
         public async Task<(bool Success, string Message, OTPVerifications? OTPVerifications)> SendOtpAsync(
@@ -52,82 +61,68 @@ namespace ParcelwalaAPP.DataAccess.Services
                 // Normalize phone number
                 phoneNumber = phoneNumber.Trim();
 
-                //// Check for existing customer
-                //var customer = await _context.Customers
-                //    .Include(c => c.CustomerOtp)
-                //    .FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber);
+                // Check for existing User
+                var User = await _context.Users
+                    //.Include(c => c.oTPVerifications)
+                    .FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber);
 
-                //// Create new customer if doesn't exist
-                //if (customer == null)
-                //{
-                //    customer = new Customer
-                //    {
-                //        FullName = fullName,
-                //        Email = email,
-                //        PhoneNumber = phoneNumber,
-                //        CreatedAt = DateTime.UtcNow,
-                //        IsActive = true
-                //    };
+                // Create new User if doesn't exist
+                if (User == null)
+                {
+                    User = new Users
+                    {
+                        FullName = string.Empty,
+                        Email = string.Empty,
+                        PhoneNumber = phoneNumber,
+                        CreatedAt = DateTime.UtcNow,
+                        IsActive = false,
+                        IsVerified = false,
+                        UserType="Customer"
+                    };
 
-                //    _context.Customers.Add(customer);
-                //    await _context.SaveChangesAsync();
+                    _context.Users.Add(User);
+                    await _context.SaveChangesAsync();
 
-                //    _logger.LogInformation("New customer created with ID: {CustomerId}", customer.CustomerID);
-                //}
-                //else
-                //{
-                //    // Update customer details if they've changed
-                //    customer.FullName = fullName;
-                //    customer.Email = email;
-                //    _context.Customers.Update(customer);
-                //}
+                    _logger.LogInformation("New User created with ID: {UserId}", User.UserID);
+                }
+                else
+                {
+                    // Update User details if they've changed
+                    User.FullName = string.Empty;
+                    User.Email = string.Empty;
+                    _context.Users.Update(User);
+                }
 
                 // Generate new OTP
                 var otpCode = GenerateOtp();
                 var expiresAt = DateTime.UtcNow.AddMinutes(5);
-         
-                var newOtp = new OTPVerifications 
+
+                // Invalidate previous unused OTPs for this phone number
+                var previousOtps = await _context.OTPVerifications
+                    .Where(o => o.PhoneNumber == phoneNumber &&
+                                !o.IsUsed &&
+                                o.ExpiresAt > DateTime.UtcNow)
+                    .ToListAsync();
+
+                foreach (var oldOtp in previousOtps)
                 {
-                   // OTPID = customer.Id,
+                    oldOtp.IsUsed = true;
+                }
+
+
+                // Create new OTP record
+                var otpVerification = new OTPVerifications 
+                {
+                    PhoneNumber = phoneNumber,
                     OTPCode = otpCode,
+                    Purpose = purpose,
+                    IsUsed = false,
                     ExpiresAt = expiresAt,
                     CreatedAt = DateTime.UtcNow,
-                    IsUsed = false,
-                    Purpose = purpose,
-                    PhoneNumber=phoneNumber
-                  
+                    UserID = User.UserID
                 };
 
-                _context.OTPVerifications.Add(newOtp);
-
-                // Update or create OTP record
-                //if (customer.CustomerOtp != null)
-                //{
-                //    // Update existing OTP
-                //    customer.CustomerOtp.OtpCode = otpCode;
-                //    customer.CustomerOtp.ExpiresAt = expiresAt;
-                //    customer.CustomerOtp.CreatedAt = DateTime.UtcNow;
-                //    customer.CustomerOtp.IsUsed = false;
-                //    customer.CustomerOtp.AttemptCount = 0;
-
-                //    _context.CustomerOtps.Update(customer.CustomerOtp);
-                //}
-                //else
-                //{
-                //    // Create new OTP record
-                //    var newOtp = new CustomerOtp
-                //    {
-                //        CustomerId = customer.Id,
-                //        OtpCode = otpCode,
-                //        ExpiresAt = expiresAt,
-                //        CreatedAt = DateTime.UtcNow,
-                //        IsUsed = false,
-                //        AttemptCount = 0
-                //    };
-
-                //    _context.CustomerOtps.Add(newOtp);
-                //}
-
+                _context.OTPVerifications.Add(otpVerification);
                 await _context.SaveChangesAsync();
 
                 // Send OTP via preferred method (SMS or Email)
@@ -155,7 +150,7 @@ namespace ParcelwalaAPP.DataAccess.Services
                 _logger.LogInformation("OTP sent successfully to {PhoneNumber} via {Method}",
                     phoneNumber, sendMethod);
 
-                return (true, "OTP sent successfully. Valid for 5 minutes.", newOtp);
+                return (true, "OTP sent successfully. Valid for 5 minutes.", otpVerification);
             }
             catch (DbUpdateException ex)
             {
@@ -168,6 +163,114 @@ namespace ParcelwalaAPP.DataAccess.Services
                 return (false, "An unexpected error occurred. Please try again.", null);
             }
         }
+        public async Task<VerifyOtpResponse> VerifyOtpAsync(VerifyOtpRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Verifying OTP for phone: {PhoneNumber}", request.PhoneNumber);
+
+                // Find the OTP
+                var otpVerification = await _context.OTPVerifications
+                    .Where(o => o.PhoneNumber == request.PhoneNumber &&
+                                o.OTPCode == request.OTPCode &&
+                                !o.IsUsed)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                // Validate OTP exists
+                if (otpVerification == null)
+                {
+                    _logger.LogWarning("Invalid OTP attempt for phone: {PhoneNumber}", request.PhoneNumber);
+                    return new VerifyOtpResponse
+                    {
+                        Success = false,
+                        Message = "Invalid OTP code",
+                        Data = null
+                    };
+                }
+
+                // Validate OTP not expired
+                if (DateTime.UtcNow > otpVerification.ExpiresAt)
+                {
+                    _logger.LogWarning("Expired OTP attempt for phone: {PhoneNumber}, OTPID: {OTPID}",
+                        request.PhoneNumber, otpVerification.OTPID);
+                    return new VerifyOtpResponse
+                    {
+                        Success = false,
+                        Message = "OTP has expired. Please request a new one.",
+                        Data = null
+                    };
+                }
+
+                // Mark OTP as used
+                otpVerification.IsUsed = true;
+
+                // Find user and update verification status
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
+
+                if (user == null)
+                {
+                    _logger.LogError("User not found for verified phone: {PhoneNumber}", request.PhoneNumber);
+                    return new VerifyOtpResponse
+                    {
+                        Success = false,
+                        Message = "User not found",
+                        Data = null
+                    };
+                }
+
+                // Update user verification status
+                user.PhoneVerified = true;
+                user.IsVerified = true;
+                user.UpdatedAt = DateTime.UtcNow;
+                user.LastLoginAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("OTP verified successfully for UserID: {UserID}", user.UserID);
+
+                // Generate JWT token
+                var token = _jwtService.GenerateTokenForUser(user);
+
+                var userDto = new Users
+                {
+                    UserID = user.UserID,
+                    UserType = user.UserType,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    FullName = user.FullName,
+                    ProfileImage = user.ProfileImage,
+                    IsActive = user.IsActive,
+                    IsVerified = user.IsVerified,
+                    EmailVerified = user.EmailVerified,
+                    PhoneVerified = user.PhoneVerified,
+                    DeviceToken= token,
+                };
+
+                return new VerifyOtpResponse
+                {
+                    Success = true,
+                    Message = "OTP verified successfully",
+                    Data = new AuthData
+                    {
+                        Token = token,
+                        User = userDto
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verifying OTP for phone: {PhoneNumber}", request.PhoneNumber);
+                return new VerifyOtpResponse
+                {
+                    Success = false,
+                    Message = "Failed to verify OTP. Please try again.",
+                    Data = null
+                };
+            }
+        }
+
 
         public string GenerateOtp()
         {

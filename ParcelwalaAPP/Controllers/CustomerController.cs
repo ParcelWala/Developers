@@ -77,6 +77,51 @@ namespace ParcelwalaAPP.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Verify OTP code
+        /// </summary>
+        /// <param name="request">Phone number and OTP code</param>
+        /// <returns>JWT token and user details</returns>
+        [HttpPost("verify-otp")]
+        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<VerifyOtpResponse>> VerifyOtp(
+            [FromBody] VerifyOtpRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for VerifyOtp request");
+                return BadRequest(new VerifyOtpResponse
+                {
+                    Success = false,
+                    Message = "Invalid request data",
+                    Data = null
+                });
+            }
+
+            var response = await _otpService.VerifyOtpAsync(request);
+
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+
+            // Return appropriate status code based on message
+            if (response.Message.Contains("not found"))
+            {
+                return NotFound(response);
+            }
+
+            if (response.Message.Contains("Invalid") || response.Message.Contains("expired"))
+            {
+                return BadRequest(response);
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, response);
+        }
     }
 
    

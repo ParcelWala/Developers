@@ -14,9 +14,8 @@ namespace ParcelwalaAPP.DataAccess.DTOs
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "OTP code is required")]
-        [RegularExpression(@"^\d{6}$", ErrorMessage = "OTP must be a 6-digit number")]
-        public string Otp { get; set; } = string.Empty;
-        public string device_token { get; set; } = string.Empty;
-        public string device_type { get; set; } = string.Empty;
+        [StringLength(6, MinimumLength = 6, ErrorMessage = "OTP must be 6 digits")]
+        [RegularExpression(@"^\d{6}$", ErrorMessage = "OTP must be exactly 6 digits")]
+        public string OTPCode { get; set; } = string.Empty;
     }
 }

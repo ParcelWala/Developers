@@ -23,8 +23,9 @@ namespace ParcelwalaAPP.DataAccess.DTOs
         //[MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
         //public string FullName { get; set; } = string.Empty;
 
-        //[Required(ErrorMessage = "Email is required")]
+        ////[Required(ErrorMessage = "Email is required")]
         //[EmailAddress(ErrorMessage = "Invalid email format")]
         //public string Email { get; set; } = string.Empty;
+
     }
 }

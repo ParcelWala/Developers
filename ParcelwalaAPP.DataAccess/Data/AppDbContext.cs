@@ -2,6 +2,7 @@
 //using Parcelwala.Models;
 using Microsoft.EntityFrameworkCore;
 using ParcelwalaAPP;
+using ParcelwalaAPP.Models;
 
 namespace Parcelwala.DataAccess.Data
 {
@@ -22,7 +23,7 @@ namespace Parcelwala.DataAccess.Data
         //public DbSet<ChatConversations> ChatConversations { get; set; }
         //public DbSet<ChatMessages> ChatMessages { get; set; }
         //public DbSet<CommissionRates> CommissionRates { get; set; }
-        public DbSet<Customer> Customers { get; set; }
+        public DbSet<CustomerProfiles> CustomerProfiles { get; set; }
         //public DbSet<DriverDocuments> DriverDocuments { get; set; }
         //public DbSet<DriverEarnings> DriverEarnings { get; set; }
         //public DbSet<DriverProfiles> DriverProfiles { get; set; }
@@ -47,7 +48,7 @@ namespace Parcelwala.DataAccess.Data
         //public DbSet<SupportTickets> SupportTickets { get; set; }
         //public DbSet<Transactions> Transactions { get; set; }
         //public DbSet<UserAddresses> UserAddresses { get; set; }
-        //public DbSet<Users> Users { get; set; }
+        public DbSet<Users> Users { get; set; }
         //public DbSet<VehicleDocuments> VehicleDocuments { get; set; }
         //public DbSet<Vehicles> Vehicles { get; set; }
         //public DbSet<VehicleTypes> VehicleTypes { get; set; }
