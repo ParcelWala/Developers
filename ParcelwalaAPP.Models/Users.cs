@@ -29,6 +29,15 @@ namespace ParcelwalaAPP.Models
         public DateTime? LastLoginAt   { get; set; }
         public string? DeviceToken { get; set; }
 
+        // Navigation properties
+
+        // One-to-One: User has one CustomerProfile
+        public CustomerProfiles? CustomerProfile { get; set; }
+
+        // One-to-Many: User can refer many customers
+        [InverseProperty("ReferredByUser")]
+        public ICollection<CustomerProfiles> ReferredCustomers { get; set; } = new List<CustomerProfiles>();
+
         // Navigation property
         [NotMapped]
         public ICollection<OTPVerifications> oTPVerifications { get; set; } = new List<OTPVerifications>();

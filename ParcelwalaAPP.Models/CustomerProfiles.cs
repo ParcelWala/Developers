@@ -9,17 +9,14 @@ using System.Threading.Tasks;
 
 namespace ParcelwalaAPP.Models
 {
-    //[Table("CustomerProfiles")]
+    [Table("CustomerProfiles")]
     public class CustomerProfiles
     {
         [Key]
         public int CustomerID { get; set; }
-        public int UserID { get; set; }
-        public string? CustomerOtp { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? FullName { get; set; }
-        public string? Email { get; set; }
-        public bool? IsActive { get; set; }
+       
+  
+        public string CustomerCode { get; set; }    
         public string? CompanyName { get; set; }
         public string? GSTNumber { get; set; }
         public string? CustomerType { get; set; }
@@ -30,7 +27,21 @@ namespace ParcelwalaAPP.Models
         public string? ReferralCode { get; set; }
         public int? ReferredBy { get; set; }
         public DateTime CreatedAt     { get; set; }
-        public DateTime UpdatedAt     { get; set; }
-     
+        public DateTime? UpdatedAt     { get; set; }
+
+        public int UserID { get; set; }
+       // Navigation properties
+
+        // Reference to the User who owns this profile
+        [ForeignKey(nameof(UserID))]
+        [InverseProperty("CustomerProfile")]
+        public Users User { get; set; } = null!;
+
+        // Reference to the User who referred this customer
+        [ForeignKey(nameof(ReferredBy))]
+        [InverseProperty("ReferredCustomers")]
+        public Users? ReferredByUser { get; set; }
+
+
     }                            
 }

@@ -17,7 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //Register Services
-builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<IOtpAuthService, OtpAuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IJwtService, JwtService>();  
