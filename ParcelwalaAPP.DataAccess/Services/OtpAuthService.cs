@@ -354,13 +354,14 @@ namespace ParcelwalaAPP.DataAccess.Services
                 user.IsVerified = true;
                 user.UpdatedAt = DateTime.UtcNow;
                 user.LastLoginAt = DateTime.UtcNow;
-
+                // Generate JWT token
+                var token = _jwtService.GenerateTokenForUser(user);
+                user.DeviceToken = token;
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("OTP verified successfully for UserID: {UserID}", user.UserID);
 
-                // Generate JWT token
-                var token = _jwtService.GenerateTokenForUser(user);
+               
 
                 var userDto = new Users
                 {
