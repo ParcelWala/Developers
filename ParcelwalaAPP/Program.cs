@@ -36,13 +36,14 @@ builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
+app.Logger.LogInformation("Application started successfully!");
 
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
 //    app.UseSwagger();
 //   app.UseSwaggerUI();
-    
+
 //}
 if (app.Environment.IsDevelopment() || true) // allow in production temporarily
 {
@@ -59,5 +60,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Admin}/{action=Index}/{id?}");
 app.MapControllers(); // For Web API routes
+app.Logger.LogInformation("Application started successfullyss!");
 
 app.Run();
