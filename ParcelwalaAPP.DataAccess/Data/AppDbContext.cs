@@ -24,6 +24,7 @@ namespace Parcelwala.DataAccess.Data
         //public DbSet<ChatMessages> ChatMessages { get; set; }
         //public DbSet<CommissionRates> CommissionRates { get; set; }
         public DbSet<CustomerProfiles> CustomerProfiles { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         //public DbSet<DriverDocuments> DriverDocuments { get; set; }
         //public DbSet<DriverEarnings> DriverEarnings { get; set; }
         //public DbSet<DriverProfiles> DriverProfiles { get; set; }
@@ -52,7 +53,7 @@ namespace Parcelwala.DataAccess.Data
         //public DbSet<VehicleDocuments> VehicleDocuments { get; set; }
         //public DbSet<Vehicles> Vehicles { get; set; }
         //public DbSet<VehicleTypes> VehicleTypes { get; set; }
-        //public DbSet<WalletTransactions> WalletTransactions { get; set; }
+        public DbSet<WalletTransactions> WalletTransaction { get; set; }
 
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)

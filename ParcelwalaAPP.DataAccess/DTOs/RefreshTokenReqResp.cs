@@ -10,19 +10,20 @@ namespace ParcelwalaAPP.DataAccess.DTOs
     public class RefreshTokenRequest
     {
         [Required(ErrorMessage = "Refresh token is required")]
-        public string RefreshToken { get; set; } = string.Empty;
+        public string refresh_token { get; set; } = string.Empty;
     }
 
     public class RefreshTokenResponse
     {
-        public bool Success { get; set; }
-        public string? Message { get; set; }
+        public bool success { get; set; }
+        public string? message { get; set; }
         public TokenData? Data { get; set; }
     }
 
     public class TokenData
     {
-        public string AccessToken { get; set; } = string.Empty;
-        public int ExpiresIn { get; set; }
+        public string access_token { get; set; } = string.Empty;
+        public string refresh_token { get; set; } = string.Empty;
+        public int expires_in { get; set; }
     }
 }

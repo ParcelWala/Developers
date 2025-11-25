@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace ParcelwalaAPP.Controllers
+namespace ParcelwalaAPP.Controllers.WebApps
 {
     public class AdminController : Controller
     {

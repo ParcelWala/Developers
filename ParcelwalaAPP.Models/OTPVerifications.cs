@@ -20,6 +20,7 @@ namespace ParcelwalaAPP.Models
         public string OTPCode { get; set; } = string.Empty;
         [Required(ErrorMessage = "Purpose is required")]
         public string Purpose { get; set; } = string.Empty;     
+        public string CountryCode { get; set; } = string.Empty;     
         public bool IsUsed { get; set; }       
         public DateTime CreatedAt     { get; set; }
         public DateTime ExpiresAt { get; set; }

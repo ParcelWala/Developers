@@ -8,8 +8,8 @@ namespace ParcelwalaAPP.DataAccess.DTOs
 {
     public class VerifyOtpResponse
     {
-        public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
+        public bool success { get; set; }
+        public string message { get; set; } = string.Empty;
         public AuthData? Data { get; set; }
     }
 }

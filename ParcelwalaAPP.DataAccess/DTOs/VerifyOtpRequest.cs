@@ -11,11 +11,13 @@ namespace ParcelwalaAPP.DataAccess.DTOs
     {
         [Required(ErrorMessage = "Phone number is required")]
         [Phone(ErrorMessage = "Invalid phone number format")]
-        public string PhoneNumber { get; set; } = string.Empty;
+        public string phone_number { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "OTP code is required")]
         [StringLength(6, MinimumLength = 6, ErrorMessage = "OTP must be 6 digits")]
         [RegularExpression(@"^\d{6}$", ErrorMessage = "OTP must be exactly 6 digits")]
-        public string OTPCode { get; set; } = string.Empty;
+        public string otp { get; set; } = string.Empty;
+        public string device_token { get; set; } = string.Empty;
+        public string device_type { get; set; } = string.Empty;
     }
 }

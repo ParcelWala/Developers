@@ -1,65 +1,77 @@
-using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.IdentityModel.Tokens;
 using Parcelwala.DataAccess.Data;
 using Parcelwala.DataAccess.Services;
-using ParcelwalaAPP;
 using ParcelwalaAPP.DataAccess.Services;
-using System.Net.NetworkInformation;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ------------------------------------
+// 1. Configure Services
+// ------------------------------------
 
-// Configure Database(Using SQL Server - change as needed)
-// Add DbContext
+// Database (SQL Server)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//Register Services
+// Register Services
 builder.Services.AddScoped<IOtpAuthService, OtpAuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
-builder.Services.AddScoped<IJwtService, JwtService>();  
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IReferralService, ReferralService>();
 
-//Add Controllers
-builder.Services.AddControllers();
+// MVC + API Controllers
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//Add Swager
+// Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-
-
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey =
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
 
 var app = builder.Build();
-app.Logger.LogInformation("Application started successfully!");
 
-// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//   app.UseSwaggerUI();
+// ------------------------------------
+// 2. Configure Middleware (Correct Order)
+// ------------------------------------
 
-//}
-if (app.Environment.IsDevelopment() || true) // allow in production temporarily
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Always enable Swagger (Development + Production)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
-//app.MapControllers();
+// Map API controllers first
+app.MapControllers();
+
+// Map MVC default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Admin}/{action=Index}/{id?}");
-app.MapControllers(); // For Web API routes
-app.Logger.LogInformation("Application started successfullyss!");
 
 app.Run();

@@ -8,8 +8,8 @@ namespace ParcelwalaAPP.DataAccess.DTOs
 {
     public class SendOtpResponse
     {
-        public bool Success { get; set; }
-        public string Message { get; set; }
+        public bool success { get; set; }
+        public string message { get; set; }
         public SendOtpResponseData Data { get; set; }
 
 
@@ -17,10 +17,12 @@ namespace ParcelwalaAPP.DataAccess.DTOs
     }
     public class SendOtpResponseData
     {
-        public string OTP { get; set; } = string.Empty; // Only in development
-        public DateTime ExpiresAt { get; set; }
-        public int UserID { get; set; }
-        public int ExpiresInSeconds { get; set; }
+        public string otp_id { get; set; } = string.Empty; //Unique OTP session identifier
+        public string otp { get; set; } = string.Empty; // Only in development
+        //public DateTime ExpiresAt { get; set; }
+        //public int userID { get; set; }
+        public int expires_in { get; set; }
+        public int can_resend_after { get; set; }
 
     }
 }

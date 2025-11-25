@@ -23,12 +23,12 @@ namespace ParcelwalaAPP.Models
         public string? PreferredLanguage { get; set; }
         public decimal? Rating { get; set; }
         public int? TotalBookings { get; set; }
-        public decimal? WalletBalance { get; set; }
-        public string? ReferralCode { get; set; }
+        public decimal WalletBalance { get; set; }
+        public string ReferralCode { get; set; }
         public int? ReferredBy { get; set; }
         public DateTime CreatedAt     { get; set; }
         public DateTime? UpdatedAt     { get; set; }
-
+       public bool IsnewUser { get; set; }
         public int UserID { get; set; }
        // Navigation properties
 

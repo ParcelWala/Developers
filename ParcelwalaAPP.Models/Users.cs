@@ -28,6 +28,7 @@ namespace ParcelwalaAPP.Models
         public DateTime? UpdatedAt     { get; set; }
         public DateTime? LastLoginAt   { get; set; }
         public string? DeviceToken { get; set; }
+        public string? DeviceType { get; set; }
 
         // Navigation properties
 

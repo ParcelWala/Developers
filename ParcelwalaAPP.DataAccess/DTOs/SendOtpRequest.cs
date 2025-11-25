@@ -12,12 +12,13 @@ namespace ParcelwalaAPP.DataAccess.DTOs
 
         [Required(ErrorMessage = "Phone number is required")]
         [Phone(ErrorMessage = "Invalid phone number format")]
-        [StringLength(15, MinimumLength = 10, ErrorMessage = "Phone number must be between 10-15 characters")]
-        public string PhoneNumber { get; set; } = string.Empty;
-
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Phone number must be between 10-15 characters")]
+        public string phone_number { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Country Code is required")]
+        public string country_code { get; set; } = string.Empty;
         [Required(ErrorMessage = "Purpose is required")]
         [StringLength(50)]
-        public string Purpose { get; set; } = string.Empty; // LOGIN, REGISTRATION, PASSWORD_RESET, etc.
+        public string purpose { get; set; } = string.Empty; // LOGIN, REGISTRATION, PASSWORD_RESET, etc.
 
 
         //[Required(ErrorMessage = "Phone number is required")]
