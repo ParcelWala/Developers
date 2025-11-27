@@ -102,7 +102,7 @@ namespace ParcelwalaAPP.DataAccess.Services
                     {
                         ReferredBy = null,
                         WalletBalance=0,    
-                        
+                        IsnewUser=true,
                         CustomerCode = GenerateCustomerCode(), // UserID will be automatically set by EF Core
                         ReferralCode =GenerateReferralCode(user.PhoneNumber),
                         CreatedAt = DateTime.UtcNow, // ReferredBy is null (no referral)
@@ -122,6 +122,7 @@ namespace ParcelwalaAPP.DataAccess.Services
                 }
                 else
                 {
+                  
                     _logger.LogInformation("Existing user found with UserID: {UserID}", user.UserID);
                 }
 
@@ -301,18 +302,20 @@ namespace ParcelwalaAPP.DataAccess.Services
                 //{
                 //    UserId = user.UserID,
                 //    Token = refreshToken,
-                 
+
                 //    ExpiresAt=DateTime.UtcNow.AddSeconds(86400),
                 //    CreatedAt=DateTime.UtcNow,
 
                 //};
                 //_context.UserTokens.Add(UserToken); 
                 //await _context.SaveChangesAsync();
-
+                var RefreshTokenLifetimeMinutes = Convert.ToInt32(_configuration["Jwt:RefreshTokenLifetimeMinutes"]);
+              
                 var tokens = new tokensDTO
                 {
                     access_token =accessToken ,
                     refresh_token = refreshToken,
+                    expires_in= RefreshTokenLifetimeMinutes * 60,
                 };
 
                 return new VerifyOtpResponse
@@ -344,7 +347,7 @@ namespace ParcelwalaAPP.DataAccess.Services
             {
                 // Get refresh token from database
                 var refreshToken = await _jwtService.GetRefreshTokenAsync(request.refresh_token);
-                var RefreshTokenLifetimeDays = Convert.ToInt32(_configuration["Jwt:RefreshTokenLifetimeDays"]);
+                var RefreshTokenLifetimeMinutes = Convert.ToInt32(_configuration["Jwt:RefreshTokenLifetimeMinutes"]);
                 if (refreshToken == null || !refreshToken.IsActive)
                 {
                     return new RefreshTokenResponse
@@ -385,7 +388,7 @@ namespace ParcelwalaAPP.DataAccess.Services
                     {
                         access_token = newAccessToken,
                         refresh_token = newRefreshToken,
-                        expires_in = RefreshTokenLifetimeDays // From app.settings
+                        expires_in = RefreshTokenLifetimeMinutes * 60 // From app.settings
                     }
                 };
 

@@ -164,8 +164,7 @@ namespace ParcelwalaAPP.Controllers.APIs
                     });
                 }
                 var customerProfile = customerUser.CustomerProfile;
-                // Check if profile already completed
-                bool wasNewUser = customerProfile.IsnewUser;
+              
 
                 // Update customer details
                 customerUser.FullName = request.full_name;
@@ -210,6 +209,9 @@ namespace ParcelwalaAPP.Controllers.APIs
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Check if profile already completed
+                bool wasNewUser = customerProfile.IsnewUser;
 
                 var message = referralApplied
                     ? "Profile completed successfully. ₹50 referral bonus added to your wallet!"
