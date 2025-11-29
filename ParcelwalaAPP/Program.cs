@@ -23,6 +23,8 @@ builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IReferralService, ReferralService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
 
 // MVC + API Controllers
 builder.Services.AddControllersWithViews();

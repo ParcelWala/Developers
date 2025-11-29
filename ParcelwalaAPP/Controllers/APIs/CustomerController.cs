@@ -19,16 +19,20 @@ namespace ParcelwalaAPP.Controllers.APIs
         private readonly IOtpAuthService _otpAuthService;
         private readonly IReferralService _referralService;
         private readonly IWalletService _walletService;
+        private readonly ICustomerService _customerService;
 
         private readonly ILogger<CustomerController> _logger;
 
-        public CustomerController(ILogger<CustomerController> logger,IOtpAuthService otpAuthService, AppDbContext context, IReferralService referralService, IWalletService walletService)
+        public CustomerController(ILogger<CustomerController> logger,IOtpAuthService otpAuthService, 
+            AppDbContext context, IReferralService referralService, IWalletService walletService,
+            ICustomerService customerService)
         {
             _logger = logger;
             _otpAuthService = otpAuthService;
             _context = context;
             _referralService = referralService;
             _walletService = walletService;
+            _customerService= customerService;
         }
        
 
@@ -301,7 +305,49 @@ namespace ParcelwalaAPP.Controllers.APIs
 
             
         }
+
+        [HttpPost("profile")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetProfile()
+        {
+            // Get User ID from JWT token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new CompleteProfileResponse
+                {
+                    success = false,
+                    message = "Invalid or missing authentication token"
+                });
+            }
+            if (!ModelState.IsValid)
+              {
+                var errors = ModelState.Values
+                         .SelectMany(v => v.Errors)
+                         .Select(e => e.ErrorMessage);
+
+                return BadRequest(new CompleteProfileResponse
+                {
+                    success = false,
+                    message = $"Validation failed: {string.Join(", ", errors)}"
+                });
+            }
+            var response = await _customerService.GetProfileAsync(userId);
+
+            if (response.success)
+            {
+                return Ok(response);
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, response);
+
+
+        }
     }
+
+
 
    
 }
