@@ -11,343 +11,353 @@ using System.Security.Claims;
 
 namespace ParcelwalaAPP.Controllers.APIs
 {
-    [Route("auth/customer")]
+    [Route("customer")]
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private readonly AppDbContext _context;
-        private readonly IOtpAuthService _otpAuthService;
-        private readonly IReferralService _referralService;
-        private readonly IWalletService _walletService;
-        private readonly ICustomerService _customerService;
-
         private readonly ILogger<CustomerController> _logger;
+        private readonly AppDbContext _context;
+        private readonly IAddressService _addressService;
+      
 
-        public CustomerController(ILogger<CustomerController> logger,IOtpAuthService otpAuthService, 
-            AppDbContext context, IReferralService referralService, IWalletService walletService,
-            ICustomerService customerService)
+        public CustomerController(ILogger<CustomerController> logger, 
+            AppDbContext context, IAddressService addressService)
         {
             _logger = logger;
-            _otpAuthService = otpAuthService;
-            _context = context;
-            _referralService = referralService;
-            _walletService = walletService;
-            _customerService= customerService;
-        }
+            _context = context;          
+            _addressService = addressService;
+        }     
+
        
 
-        /// <summary>
-        /// Send OTP to phone number
-        /// </summary>
-        /// <param name="request">Phone number and purpose</param>
-        /// <returns>OTP details and user ID</returns>
-        [HttpPost("send-otp")]
-        [ProducesResponseType(typeof(SendOtpResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(SendOtpResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(SendOtpResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<SendOtpResponse>> SendOtp(
-            [FromBody] SendOtpRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("Invalid model state for SendOtp request");
-                return BadRequest(new SendOtpResponse
-                {
-                    success = false,
-                    message = "Invalid request data",
-                    Data = null
-                }); 
-            }
-
-            var response = await _otpAuthService.SendOtpAsync(request);
-
-            if (response.success)
-            {
-                return Ok(response);
-            }
-
-            return StatusCode(StatusCodes.Status500InternalServerError, response);
-        }
+        //----------------------------Addresss & Services----------------------------
 
         /// <summary>
-        /// Verify OTP code
-        /// </summary>
-        /// <param name="request">Phone number and OTP code</param>
-        /// <returns>JWT token and user details</returns>
-        [HttpPost("verify-otp")]
-        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(VerifyOtpResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<VerifyOtpResponse>> VerifyOtp(
-            [FromBody] VerifyOtpRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("Invalid model state for VerifyOtp request");
-                return BadRequest(new VerifyOtpResponse
-                {
-                    success = false,
-                    message = "Invalid request data",
-                    Data = null
-                });
-            }
-
-            var response = await _otpAuthService.VerifyOtpAsync(request);
-
-            if (response.success)
-            {
-                return Ok(response);
-            }
-
-            // Return appropriate status code based on message
-            if (response.message.Contains("not found"))
-            {
-                return NotFound(response);
-            }
-
-            if (response.message.Contains("Invalid") || response.message.Contains("expired"))
-            {
-                return BadRequest(response);
-            }
-
-            return StatusCode(StatusCodes.Status500InternalServerError, response);
-        }
-
-        /// <summary>
-        /// Complete customer profile with optional referral code
+        /// Get all saved addresses for authenticated customer
         /// </summary>
         [Authorize]
-        [HttpPut("complete-profile")]
-        [ProducesResponseType(typeof(CompleteProfileResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(CompleteProfileResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<CompleteProfileResponse>> CompleteProfile(
-            [FromBody] CompleteProfileRequest request)
+        [HttpGet("addresses")]
+        [ProducesResponseType(typeof(GetAddressesResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GetAddressesResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(GetAddressesResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<GetAddressesResponse>> GetAddresses()
         {
             try
             {
-                // Get User ID from JWT token
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                // Get customer ID from JWT token
+                var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int userId))
                 {
-                    return Unauthorized(new CompleteProfileResponse
+                    return Unauthorized(new GetAddressesResponse
                     {
                         success = false,
                         message = "Invalid or missing authentication token"
                     });
                 }
-
-                // Validate request
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage);
-
-                    return BadRequest(new CompleteProfileResponse
-                    {
-                        success = false,
-                        message = $"Validation failed: {string.Join(", ", errors)}"
-                    });
-                }
-
                 // Get customer
-                var customerUser = await _context.Users
-                    .Include(c => c.CustomerProfile)
-                    .FirstOrDefaultAsync(u =>u.UserID == userId);
-                //var customer = await _context.CustomerProfiles
-                //    .FirstOrDefaultAsync(c => c.CustomerID == customerId);
-
-                if (customerUser == null)
-                {
-                    return BadRequest(new CompleteProfileResponse
+                var customer = await _context.CustomerProfiles
+                    .FirstOrDefaultAsync(u => u.UserID == userId);
+                if (customer == null)
+                {                  
+                    return StatusCode(500, new GetAddressesResponse
                     {
                         success = false,
                         message = "Customer not found"
                     });
                 }
-                var customerProfile = customerUser.CustomerProfile;
-              
-
-                // Update customer details
-                customerUser.FullName = request.full_name;
-                customerUser.Email = request.email;
-                customerProfile.IsnewUser = false;
-
-                // Generate referral code if not exists
-                if (string.IsNullOrEmpty(customerProfile.ReferralCode))
+                else
                 {
-                    customerProfile.ReferralCode = _referralService.GenerateReferralCode(
-                        request.full_name, customerProfile.CustomerID);
-                }
+                    var customerId = customer.CustomerID;
+                    var (success, message, addresses) = await _addressService.GetCustomerAddressesAsync(customerId);
 
-                // Handle referral code if provided
-                bool referralApplied = false;
-                if (!string.IsNullOrWhiteSpace(request.referral_code) && customerProfile.ReferredBy == null)
-                {
-                    var (isValid, referrerId) = await _referralService.ValidateReferralCodeAsync(
-                        request.referral_code, customerProfile.CustomerID);
-
-                    if (isValid && referrerId.HasValue)
+                    if (!success)
                     {
-                        customerProfile.ReferredBy = referrerId.Value;
-                        referralApplied = await _referralService.ApplyReferralBonusAsync(
-                            customerProfile.CustomerID, referrerId.Value);
-
-                        if (referralApplied)
+                        return StatusCode(500, new GetAddressesResponse
                         {
-                            // Reload customer to get updated wallet balance
-                            await _context.Entry(customerProfile).ReloadAsync();
-                            _logger.LogInformation(
-                                "Referral bonus applied for Customer {CustomerId} using code {ReferralCode}",
-                                customerProfile.CustomerID, request.referral_code);
-                        }
+                            success = false,
+                            message = message
+                        });
                     }
-                    else
+
+                    return Ok(new GetAddressesResponse
                     {
-                        _logger.LogWarning(
-                            "Invalid referral code {ReferralCode} for Customer {CustomerId}",
-                            request.referral_code, customerProfile.CustomerID);
-                    }
+                        success = true,
+                        message = message,
+                        Data = addresses ?? new List<AddressResponseDto>()
+                    });
                 }
-
-                await _context.SaveChangesAsync();
-
-                // Check if profile already completed
-                bool wasNewUser = customerProfile.IsnewUser;
-
-                var message = referralApplied
-                    ? "Profile completed successfully. ₹50 referral bonus added to your wallet!"
-                    : "Profile completed successfully";
-
-                return Ok(new CompleteProfileResponse
-                {
-                    success = true,
-                    message = message,
-                    Data = new CompleteProfileData
-                    {
-                        user_id = customerUser.UserID,
-                        customer_id = customerProfile.CustomerID,
-                        phone_number = customerUser.PhoneNumber,
-                        full_name = customerUser.FullName,
-                        email = customerUser.Email,
-                        profile_image = customerUser.ProfileImage,
-                        is_new_user = wasNewUser,
-                        wallet_balance = customerProfile.WalletBalance,
-                        referral_code = customerProfile.ReferralCode ?? string.Empty
-                    }
-                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error completing profile for customer");
-                return StatusCode(500, new CompleteProfileResponse
+                _logger.LogError(ex, "Error in GetAddresses endpoint");
+
+                return StatusCode(500, new GetAddressesResponse
                 {
                     success = false,
-                    message = "An error occurred while completing your profile"
+                    message = "An internal error occurred"
                 });
             }
         }
 
-
         /// <summary>
-        /// Refresh access token using refresh token
+        /// Add a new address for authenticated customer
         /// </summary>
-        [HttpPost("refresh-token")]
-        [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<RefreshTokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
+       
+        [Authorize]
+        [HttpPost("addresses")]
+        [ProducesResponseType(typeof(GetAddressesResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(GetAddressesResponse), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<GetAddressesResponse>> AddAddress([FromBody] AddAddressRequest request)
         {
-           
+            try
+            {
                 if (!ModelState.IsValid)
-                    return BadRequest(new RefreshTokenResponse
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+
+                    return BadRequest(new GetAddressesResponse
                     {
                         success = false,
-                        message = "Refresh token is required"
+                        message = "Validation failed",
+                        Data = new List<AddressResponseDto>()
                     });
-                var response = await _otpAuthService.RefreshTokenAsync(request);
-
-                if (response.success)
-                {
-                    return Ok(response);
                 }
 
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
+                var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int userId))
+                {
+                    return Unauthorized(new GetAddressesResponse
+                    {
+                        success = false,
+                        message = "Invalid authentication token"
+                    });
+                }
+                // Get customer
+                var customer = await _context.CustomerProfiles
+                    .FirstOrDefaultAsync(u => u.UserID == userId);
+                if (customer == null)
+                {
+                    return StatusCode(500, new GetAddressesResponse
+                    {
+                        success = false,
+                        message = "Customer not found"
+                    });
+                }
+                else
+                {
+                    var customerId = customer.CustomerID;
+                    var (success, message, address) = await _addressService.AddAddressAsync(customerId, request);
 
-                
-           
+                    if (!success)
+                    {
+                        return BadRequest(new GetAddressesResponse
+                        {
+                            success = false,
+                            message = message
+                        });
+                    }
+
+                    return CreatedAtAction(nameof(GetAddresses), new GetAddressesResponse
+                    {
+                        success = true,
+                        message = message,
+                        Data = address != null ? new List<AddressResponseDto> { address } : new List<AddressResponseDto>()
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddAddress endpoint");
+
+                return StatusCode(500, new GetAddressesResponse
+                {
+                    success = false,
+                    message = "An internal error occurred"
+                });
+            }
         }
 
         /// <summary>
-        /// Revoke refresh token (logout)
+        /// Update an existing address for authenticated customer
         /// </summary>
-        [HttpPost("logout")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> RevokeToken([FromBody] RefreshTokenRequest request)
+        [HttpPut("addresses/{addressId}")]
+        [ProducesResponseType(typeof(UpdateAddressResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateAddressResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(UpdateAddressResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(UpdateAddressResponse), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UpdateAddressResponse>> UpdateAddress(
+            int addressId,
+            [FromBody] UpdateAddressRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new RefreshTokenResponse
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+
+                    return BadRequest(new UpdateAddressResponse
+                    {
+                        success = false,
+                        message = "Validation failed"
+                    });
+                }
+
+                // Get customer ID from JWT token
+                var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int userId))
+                {
+                    return Unauthorized(new UpdateAddressResponse
+                    {
+                        success = false,
+                        message = "Invalid or missing authentication token"
+                    });
+                }
+                // Get customer
+                var customer = await _context.CustomerProfiles
+                    .FirstOrDefaultAsync(u => u.UserID == userId);
+                if (customer == null)
+                {
+                    return StatusCode(500, new GetAddressesResponse
+                    {
+                        success = false,
+                        message = "Customer not found"
+                    });
+                }
+                else
+                {
+                    var customerId = customer.CustomerID;
+
+                    var (success, message, address) = await _addressService.UpdateAddressAsync(
+                    customerId, addressId, request);
+
+                    if (!success)
+                    {
+                        if (message.Contains("not found"))
+                        {
+                            return NotFound(new UpdateAddressResponse
+                            {
+                                success = false,
+                                message = message
+                            });
+                        }
+
+                        return BadRequest(new UpdateAddressResponse
+                        {
+                            success = false,
+                            message = message
+                        });
+                    }
+
+                    return Ok(new UpdateAddressResponse
+                    {
+                        success = true,
+                        message = message,
+                        Data = address
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateAddress endpoint for addressId: {AddressId}", addressId);
+
+                return StatusCode(500, new UpdateAddressResponse
                 {
                     success = false,
-                    message = "token is required"
+                    message = "An internal error occurred"
                 });
-            var response = await _otpAuthService.RevokeRefreshTokenAsync(request);
-
-            if (response.success)
-            {
-                return Ok(response);
             }
-
-            return StatusCode(StatusCodes.Status500InternalServerError, response);
-
-            
         }
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpPost("profile")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetProfile()
+
+
+        [HttpDelete("addresses/{addressId}")]
+        [ProducesResponseType(typeof(GetAddressesResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(GetAddressesResponse), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<GetAddressesResponse>> DeleteAddress(int addressId)
         {
-            // Get User ID from JWT token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            try
             {
-                return Unauthorized(new CompleteProfileResponse
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+
+                    return BadRequest(new GetAddressesResponse
+                    {
+                        success = false,
+                        message = "Validation failed",
+                        Data = new List<AddressResponseDto>()
+                    });
+                }
+
+                var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int userId))
+                {
+                    return Unauthorized(new GetAddressesResponse
+                    {
+                        success = false,
+                        message = "Invalid authentication token"
+                    });
+                }
+                // Get customer
+                var customer = await _context.CustomerProfiles
+                    .FirstOrDefaultAsync(u => u.UserID == userId);
+                if (customer == null)
+                {
+                    return StatusCode(500, new GetAddressesResponse
+                    {
+                        success = false,
+                        message = "Customer not found"
+                    });
+                }
+                else
+                {
+                    var customerId = customer.CustomerID;
+                    var (success, message) = await _addressService.DeleteAddressAsync(customerId, addressId);
+
+                    if (!success)
+                    {
+                        return BadRequest(new GetAddressesResponse
+                        {
+                            success = false,
+                            message = message
+                        });
+                    }
+
+                    return CreatedAtAction(nameof(GetAddresses), new GetAddressesResponse
+                    {
+                        success = true,
+                        message = message,
+                        Data = null
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddAddress endpoint");
+
+                return StatusCode(500, new GetAddressesResponse
                 {
                     success = false,
-                    message = "Invalid or missing authentication token"
+                    message = "An internal error occurred"
                 });
             }
-            if (!ModelState.IsValid)
-              {
-                var errors = ModelState.Values
-                         .SelectMany(v => v.Errors)
-                         .Select(e => e.ErrorMessage);
-
-                return BadRequest(new CompleteProfileResponse
-                {
-                    success = false,
-                    message = $"Validation failed: {string.Join(", ", errors)}"
-                });
-            }
-            var response = await _customerService.GetProfileAsync(userId);
-
-            if (response.success)
-            {
-                return Ok(response);
-            }
-
-            return StatusCode(StatusCodes.Status500InternalServerError, response);
-
-
         }
+
+
     }
 
 
 
-   
+
+
+
 }

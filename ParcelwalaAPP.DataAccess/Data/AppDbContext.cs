@@ -24,6 +24,7 @@ namespace Parcelwala.DataAccess.Data
         //public DbSet<ChatMessages> ChatMessages { get; set; }
         //public DbSet<CommissionRates> CommissionRates { get; set; }
         public DbSet<CustomerProfiles> CustomerProfiles { get; set; }
+        public DbSet<CustomerAddress> CustomerAddresses { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         //public DbSet<DriverDocuments> DriverDocuments { get; set; }
         //public DbSet<DriverEarnings> DriverEarnings { get; set; }

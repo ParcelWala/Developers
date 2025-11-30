@@ -65,7 +65,7 @@ namespace ParcelwalaAPP.DataAccess.Services
                 // Find or create user
                 var user = await _context.Users
                     .Include(c=>c.CustomerProfile)
-                     .FirstOrDefaultAsync(u => u.UserID == UserId); ;
+                     .FirstOrDefaultAsync(u => u.UserID == UserId); 
 
                 if (user != null)
                 {
