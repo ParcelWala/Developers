@@ -53,6 +53,8 @@ namespace Parcelwala.DataAccess.Data
         //public DbSet<VehicleDocuments> VehicleDocuments { get; set; }
         //public DbSet<Vehicles> Vehicles { get; set; }
         public DbSet<VehicleTypes> VehicleTypes { get; set; }
+        public DbSet<GoodsType> GoodsTypes { get; set; }
+        public DbSet<RestrictedItem> RestrictedItems { get; set; }
         public DbSet<WalletTransactions> WalletTransaction { get; set; }
 
 

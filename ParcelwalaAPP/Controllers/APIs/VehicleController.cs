@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace ParcelwalaAPP.Controllers.APIs
 {
-    [Route("auth/vehicles")]
+    [Route("vehicles")]
     [ApiController]
     public class VehicleController : ControllerBase
     {
@@ -23,10 +23,11 @@ namespace ParcelwalaAPP.Controllers.APIs
             _vehicleService = vehicleService;
         }
 
-        [HttpPost("types")]
-        //[Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpGet("types")]
+        [ResponseCache(Duration = 1800)] // 30 minutes
+        [ProducesResponseType(typeof(GoodsTypesResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GoodsTypesResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(GoodsTypesResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> VehiclesType()
         {
             // Get User ID from JWT token

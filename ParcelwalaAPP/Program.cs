@@ -25,6 +25,9 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<IReferralService, ReferralService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IGoodsTypeService, GoodsTypeService>();
+builder.Services.AddScoped<IRestrictedItemService, RestrictedItemService>();
+
 
 // MVC + API Controllers
 builder.Services.AddControllersWithViews();

@@ -305,7 +305,7 @@ namespace ParcelwalaAPP.Controllers.APIs
 
             
         }
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("profile")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
