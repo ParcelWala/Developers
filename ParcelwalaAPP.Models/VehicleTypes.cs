@@ -17,14 +17,14 @@ namespace ParcelwalaAPP.Models
       public string  DisplayName       {get;set;}
       public string?  Description       {get;set;}
       public string?  ImageURL          {get;set;}
-        public string?  Icon          {get;set;}
+        public string  Icon          {get;set;}
       public string  Capacity          {get;set;}
       public string?  Dimensions        {get;set;}
       public decimal  BaseFare          {get;set;}
       public decimal FreeDistanceKm { get;set;}
       public decimal  PerKmRate         {get;set;}
       public decimal?  PerMinuteRate     {get;set;}
-      public decimal? FreeWaitingTimeMins { get;set;}
+      public int? FreeWaitingTimeMins { get;set;}
       public decimal? PlatformFee { get;set;}
       public decimal  MinimumFare       {get;set;}
       public decimal MaxCapacityKg { get;set;}

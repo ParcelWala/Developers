@@ -18,11 +18,11 @@ namespace ParcelwalaAPP.Models
 
         [Required]
         [MaxLength(50)]
-        public string AddressType { get; set; } = string.Empty; // Home, Office, Other
+        public string? AddressType { get; set; } = string.Empty; // Home, Office, Other
 
         [Required]
         [MaxLength(100)]
-        public string Label { get; set; } = string.Empty;
+        public string? Label { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(500)]
@@ -30,6 +30,10 @@ namespace ParcelwalaAPP.Models
 
         [MaxLength(200)]
         public string? Landmark { get; set; }
+        [MaxLength(200)]
+        public string? BuildingDetails { get; set; }
+        [MaxLength(6)]
+        public string? Pincode { get; set; }
 
         [Column(TypeName = "decimal(10,8)")]
         public decimal? Latitude { get; set; }

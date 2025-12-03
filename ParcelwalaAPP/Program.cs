@@ -28,6 +28,7 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IGoodsTypeService, GoodsTypeService>();
 builder.Services.AddScoped<IRestrictedItemService, RestrictedItemService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IFareCalculationService, FareCalculationService>();
 
 
 // MVC + API Controllers

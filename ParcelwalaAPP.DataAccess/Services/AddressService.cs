@@ -46,6 +46,8 @@ namespace ParcelwalaAPP.DataAccess.Services
                         label = a.Label,
                         address = a.Address,
                         landmark = a.Landmark,
+                        building_details=string.IsNullOrEmpty(a.BuildingDetails)?"":a.BuildingDetails,
+                        pincode=string.IsNullOrEmpty(a.Pincode)?"":a.Pincode,
                         latitude = a.Latitude,
                         longitude = a.Longitude,
                         contact_name = a.ContactName,
@@ -97,6 +99,8 @@ namespace ParcelwalaAPP.DataAccess.Services
                     Label = request.label,
                     Address = request.address,
                     Landmark = request.landmark,
+                    BuildingDetails=request.building_details,
+                    Pincode=request.pincode,
                     Latitude = request.latitude,
                     Longitude = request.longitude,
                     ContactName = request.contact_name,
@@ -117,6 +121,9 @@ namespace ParcelwalaAPP.DataAccess.Services
                     label = newAddress.Label,
                     address = newAddress.Address,
                     landmark = newAddress.Landmark,
+                    building_details= string.IsNullOrEmpty(newAddress.BuildingDetails) ? "" : newAddress.BuildingDetails,
+                    pincode=string.IsNullOrEmpty(newAddress.Pincode)?"":newAddress.Pincode,
+
                     latitude = newAddress.Latitude,
                     longitude = newAddress.Longitude,
                     contact_name = newAddress.ContactName,
@@ -170,6 +177,8 @@ namespace ParcelwalaAPP.DataAccess.Services
                 address.Label = request.label;
                 address.Address = request.address;
                 address.Landmark = request.landmark;
+                address.BuildingDetails = request.building_details; 
+                address.Pincode= request.pincode;
                 address.Latitude = request.latitude;
                 address.Longitude = request.longitude;
                 address.ContactName = request.contact_name;
@@ -186,7 +195,9 @@ namespace ParcelwalaAPP.DataAccess.Services
                     address_type = address.AddressType,
                     label = address.Label,
                     address = address.Address,
-                    landmark = address.Landmark,
+                    landmark = string.IsNullOrEmpty(address.Landmark)?"":address.Landmark,
+                    building_details = string.IsNullOrEmpty(address.BuildingDetails) ? "" : address.BuildingDetails,
+                    pincode = string.IsNullOrEmpty(address.Pincode) ? "" : address.Pincode,                   
                     latitude = address.Latitude,
                     longitude = address.Longitude,
                     contact_name = address.ContactName,

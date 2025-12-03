@@ -77,7 +77,7 @@ namespace ParcelwalaAPP.DataAccess.Services
                     {
                         vehicle_type_id = v.VehicleTypeID,
                         name = v.DisplayName,
-                        icon = v.Icon,
+                        icon =  v.Icon,
                         description = v.Description,
                         capacity = v.Capacity,
                         base_price = v.BaseFare,
@@ -88,10 +88,10 @@ namespace ParcelwalaAPP.DataAccess.Services
                         free_waiting_time_mins = v.FreeWaitingTimeMins,
                         min_fare = v.MinimumFare,
                         max_capacity_kg = v.MaxCapacityKg,
-                        dimensions = v.Dimensions,
+                        dimensions = string.IsNullOrEmpty(v.Dimensions)?"":v.Dimensions,
                         is_available = v.IsAvailable,
-                        image_url = v.ImageURL,
-                        surge_enabled = v.SurgeEnabled
+                        image_url = string.IsNullOrEmpty(v.ImageURL) ? "" : v.ImageURL,
+                        surge_enabled = v.SurgeEnabled==null?false:v.SurgeEnabled,
                     })
                     .ToListAsync();
 

@@ -24,10 +24,10 @@ namespace ParcelwalaAPP.Controllers.APIs
         }
 
         [HttpGet("types")]
-        [ResponseCache(Duration = 1800)] // 30 minutes
-        [ProducesResponseType(typeof(GoodsTypesResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(GoodsTypesResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(GoodsTypesResponse), StatusCodes.Status500InternalServerError)]
+        //[ResponseCache(Duration = 60)] // 1 minutes
+        [ProducesResponseType(typeof(VehicleTypesResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> VehiclesType()
         {
             // Get User ID from JWT token
@@ -51,7 +51,11 @@ namespace ParcelwalaAPP.Controllers.APIs
                 return Ok(response);
             }
 
-            return StatusCode(StatusCodes.Status500InternalServerError, response);
+            return StatusCode(500, new ErrorResponse
+            {
+                message = response.message,
+                errorcode = "INTERNAL_SERVER_ERROR"
+            });
 
 
         }

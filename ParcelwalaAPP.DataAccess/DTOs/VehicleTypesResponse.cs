@@ -25,7 +25,7 @@ namespace ParcelwalaAPP.DataAccess.DTOs
            public decimal? price_per_km            {get;set;}
            public decimal? platform_fee            {get;set;}
            public decimal? waiting_charge_per_min  {get;set;}
-           public decimal? free_waiting_time_mins  {get;set;}
+           public int? free_waiting_time_mins  {get;set;}
            public decimal min_fare                {get;set;}
            public decimal max_capacity_kg         {get;set;}
            public string? dimensions              {get;set;}

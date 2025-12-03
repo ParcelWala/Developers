@@ -10,10 +10,12 @@ namespace ParcelwalaAPP.DataAccess.DTOs
     public class AddressResponseDto
     {
         public string address_id { get; set; } = string.Empty;
-        public string address_type { get; set; } = string.Empty;
-        public string label { get; set; } = string.Empty;
-        public string address { get; set; } = string.Empty;
+        public string? address_type { get; set; } = string.Empty;
+        public string? label { get; set; } = string.Empty;
+        public string address { get; set; } = string.Empty;    
         public string? landmark { get; set; }
+        public string? building_details { get; set; }
+        public string? pincode { get; set; }
         public decimal? latitude { get; set; }
         public decimal? longitude { get; set; }
         public string contact_name { get; set; } = string.Empty;
@@ -30,22 +32,28 @@ namespace ParcelwalaAPP.DataAccess.DTOs
 
     public class AddAddressRequest
     {
-        [Required(ErrorMessage = "Address type is required")]
-        [RegularExpression("^(Home|Office|Other)$", ErrorMessage = "Address type must be Home, Office, or Other")]
-        public string address_type { get; set; } = string.Empty;
+        //[Required(ErrorMessage = "Address type is required")]
+        //[RegularExpression("^(Home|Office|Other)$", ErrorMessage = "Address type must be Home, Office, or Other")]
+        public string? address_type { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Label is required")]
-        [MinLength(2, ErrorMessage = "Label must be at least 2 characters")]
-        [MaxLength(100, ErrorMessage = "Label cannot exceed 100 characters")]
-        public string label { get; set; } = string.Empty;
+        //[Required(ErrorMessage = "Label is required")]
+        //[MinLength(2, ErrorMessage = "Label must be at least 2 characters")]
+        //[MaxLength(100, ErrorMessage = "Label cannot exceed 100 characters")]
+        public string? label { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Address is required")]
         [MinLength(10, ErrorMessage = "Address must be at least 10 characters")]
         [MaxLength(500, ErrorMessage = "Address cannot exceed 500 characters")]
         public string address { get; set; } = string.Empty;
 
-        [MaxLength(200, ErrorMessage = "Landmark cannot exceed 200 characters")]
+        //[MaxLength(200, ErrorMessage = "Landmark cannot exceed 200 characters")]
         public string? landmark { get; set; }
+
+        //[MaxLength(200, ErrorMessage = "Building Details cannot exceed 200 characters")]
+        public string? building_details { get; set; }
+
+        //[MaxLength(200, ErrorMessage = "Pincode cannot exceed 6 characters")]
+        public string? pincode { get; set; }
 
         [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90")]
         public decimal? latitude { get; set; }
@@ -67,22 +75,28 @@ namespace ParcelwalaAPP.DataAccess.DTOs
     }
     public class UpdateAddressRequest
     {
-        [Required(ErrorMessage = "Address type is required")]
-        [RegularExpression("^(Home|Office|Other)$", ErrorMessage = "Address type must be Home, Office, or Other")]
-        public string address_type { get; set; } = string.Empty;
+        //[Required(ErrorMessage = "Address type is required")]
+       
+        public string? address_type { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Label is required")]
-        [MinLength(2, ErrorMessage = "Label must be at least 2 characters")]
-        [MaxLength(100, ErrorMessage = "Label cannot exceed 100 characters")]
-        public string label { get; set; } = string.Empty;
+        //[Required(ErrorMessage = "Label is required")]
+        //[MinLength(2, ErrorMessage = "Label must be at least 2 characters")]
+        //[MaxLength(100, ErrorMessage = "Label cannot exceed 100 characters")]
+        public string? label { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Address is required")]
         [MinLength(10, ErrorMessage = "Address must be at least 10 characters")]
         [MaxLength(500, ErrorMessage = "Address cannot exceed 500 characters")]
         public string address { get; set; } = string.Empty;
 
-        [MaxLength(200, ErrorMessage = "Landmark cannot exceed 200 characters")]
+        //[MaxLength(200, ErrorMessage = "Landmark cannot exceed 200 characters")]
         public string? landmark { get; set; }
+
+        //[MaxLength(200, ErrorMessage = "Building Details cannot exceed 200 characters")]
+        public string? building_details { get; set; }
+
+        //[MaxLength(200, ErrorMessage = "Pincode cannot exceed 6 characters")]
+        public string? pincode { get; set; }
 
         [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90")]
         public decimal? latitude { get; set; }
